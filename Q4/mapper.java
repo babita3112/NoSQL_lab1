@@ -1,43 +1,28 @@
-package ques4;
+package ques2;
 
+import java.io.IOException;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-public class mapper extends Mapper<LongWritable, Text, Text, Text> {
+public class mapper extends Mapper<LongWritable, Text, Text, IntWritable> {
 
 	@Override
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+
 		String line = value.toString();
-		int start = line.indexOf('[');
-		int stop = line.indexOf(']');
-		String timeStr = line.substring(start + 1, stop - 1);
-		String month = timeStr.substring(3, 6);
-		String year = timeStr.substring(7, 11);
-		String combined = month + "-" + year;
 
-		Summary summary = new Summary();
-		summary.setRequests(new IntWritable(1));
-		int bytes = 0;
-		if (line.contains("GET")) {
-			String temp = "";
-			String pattern = "HTTP/1.1\\\" \\d{3}\\ (\\d+)";
-			Pattern r = Pattern.compile(pattern);
-			Matcher m = r.matcher(line);
-
-			if (!m.find()) {
-				temp = "0";
+		//String imageType = "";
+		if (line.contains("GET") && line.contains("images")) {
+			if (line.contains(".jpg")) {
+				imageType = "JPG";
+			} else if (line.contains(".gif")) {
+				imageType = "GIF";
 			} else {
-				temp = m.group(1);
+				imageType = "OTHERS";
 			}
-			bytes = Integer.parseInt(temp);
-
 		}
-		summary.setDownloadSize(new IntWritable(bytes));
-		context.write(new Text(combined), new Text(summary.toString()));
+		context.write(new Text(imageType), new IntWritable(1));
 	}
 }
